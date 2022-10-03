@@ -1,0 +1,18 @@
+---
+# this golden test show how our template wrongly format the code
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-sonarqube-config
+  labels:
+    app: sonarqube
+    chart: sonarqube-5.4.0
+    release: release-name
+    heritage: Helm
+data:
+  sonar.properties:
+  
+    toto=tutu
+  
+    sonar.es.bootstrap.checks.disable=true
+      sonar.secretKeyPath=/opt/sonarqube/secret/sonar-secret.txt

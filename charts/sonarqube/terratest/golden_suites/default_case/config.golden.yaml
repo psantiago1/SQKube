@@ -1,0 +1,11 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-sonarqube-config
+  labels:
+    app: sonarqube
+    chart: sonarqube-5.4.0
+    release: release-name
+    heritage: Helm
+data:

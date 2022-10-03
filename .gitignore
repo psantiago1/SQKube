@@ -37,3 +37,6 @@ Session.vim
 
 .history
 values-sq.yaml
+
+# Terratest temp folder
+**/tmpcharts/**

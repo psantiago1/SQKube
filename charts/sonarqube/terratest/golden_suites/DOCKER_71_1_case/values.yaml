@@ -1,0 +1,5 @@
+sonarProperties:
+  toto: tutu
+sonarSecretKey: mySecretKey
+elasticsearch:
+  bootstrapChecks: false

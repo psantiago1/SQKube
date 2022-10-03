@@ -1,0 +1,192 @@
+---
+# Source: sonarqube/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-sonarqube
+  labels:
+    app: sonarqube
+    chart: sonarqube-5.4.0
+    release: release-name
+    heritage: Helm
+    app.kubernetes.io/name: sonarqube-release-name-sonarqube
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: sonarqube
+    app.kubernetes.io/component: release-name-sonarqube
+    app.kubernetes.io/version: "9.6.1-community"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonarqube
+      release: release-name
+  template:
+    metadata:
+      labels:
+        app: sonarqube
+        release: release-name
+      annotations:
+        checksum/init-sysctl: 38b6a73f08534d3d7547e2570446912ba63b6986c7b78f3f22b1abf03250349b
+        checksum/plugins: 8aba274cd251da37fc15b4213c1b287fd4be7fda18eae143549f9402d499f2a2
+        checksum/config: 66a9a2c793f94ee8b8f3f8ba3bb594456b459e2d8980a6b1fec9dd0dc3d784f3
+        checksum/secret: b00e392756c5926cd4e24e523ec16080e9f4e9bd0d993c4e71300910802d750b
+    spec:
+      serviceAccountName: default
+      securityContext:
+        fsGroup: 1000
+      initContainers:
+        - name: init-sysctl
+          image: busybox:1.32
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+          resources:
+            {}
+          command: ["sh",
+            "-e",
+            "/tmp/scripts/init_sysctl.sh"]
+          volumeMounts:
+            - name: init-sysctl
+              mountPath: /tmp/scripts/
+        - name: concat-properties
+          image: busybox:1.32
+          imagePullPolicy: IfNotPresent
+          command: 
+          - sh
+          - -c
+          - |
+            #!/bin/sh
+            if [ -f /tmp/props/sonar.properties ]; then
+              cat /tmp/props/sonar.properties > /tmp/result/sonar.properties
+            fi
+            if [ -f /tmp/props/secret.properties ]; then
+              cat /tmp/props/secret.properties > /tmp/result/sonar.properties
+            fi
+            if [ -f /tmp/props/sonar.properties -a -f /tmp/props/secret.properties ]; then
+              awk 1 /tmp/props/sonar.properties /tmp/props/secret.properties > /tmp/result/sonar.properties
+            fi
+          volumeMounts:
+            - mountPath: /tmp/props/sonar.properties
+              name: config
+              subPath: sonar.properties
+            - mountPath: /tmp/result
+              name: concat-dir
+          resources:
+            {}
+        - name: "wait-for-db"
+          image: busybox:1.32
+          imagePullPolicy: IfNotPresent
+          resources:
+            {}
+          command: ["/bin/sh", "-c", "for i in $(seq 1 200); do nc -z -w3 release-name-postgresql 5432 && exit 0 || sleep 2; done; exit 1"]
+      containers:
+        - name: sonarqube
+          image: "sonarqube:9.6.1-community"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 9000
+              protocol: TCP
+          env:
+            - name: SONAR_WEB_JAVAOPTS
+              value: "-javaagent:/opt/sonarqube/data/jmx_prometheus_javaagent.jar=8000:/opt/sonarqube/conf/prometheus-config.yaml"
+            - name: SONAR_CE_JAVAOPTS
+              value: "-javaagent:/opt/sonarqube/data/jmx_prometheus_javaagent.jar=8001:/opt/sonarqube/conf/prometheus-ce-config.yaml"
+            - name: SONAR_JDBC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-postgresql
+                  key: postgresql-password
+            - name: SONAR_WEB_SYSTEMPASSCODE
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-sonarqube-monitoring-passcode
+                  key: SONAR_WEB_SYSTEMPASSCODE
+          envFrom:
+            - configMapRef:
+                name: release-name-sonarqube-jdbc-config
+          livenessProbe:
+            exec:
+              command:
+              - sh
+              - -c
+              - |
+                host="$(hostname -i || echo '127.0.0.1')"
+                reply=$(wget -qO- --header="X-Sonar-Passcode: $SONAR_WEB_SYSTEMPASSCODE" http://${host}:9000/api/system/liveness 2>&1)
+                if [ -z "$reply" ]; then exit 0; else exit 1; fi
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 6
+          readinessProbe:
+            httpGet:
+              path: /api/system/status
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 6
+          securityContext:
+            runAsUser: 1000
+          volumeMounts:
+            - mountPath: /opt/sonarqube/conf/
+              name: concat-dir
+            - mountPath: /opt/sonarqube/secret/
+              name: secret
+            - mountPath: /opt/sonarqube/certs
+              name: sonarqube
+              subPath: certs
+            - mountPath: /opt/sonarqube/data
+              name: sonarqube
+              subPath: data
+            - mountPath: /opt/sonarqube/temp
+              name: sonarqube
+              subPath: temp
+            - mountPath: /opt/sonarqube/logs
+              name: sonarqube
+              subPath: logs
+            - mountPath: /tmp
+              name: tmp-dir
+          resources:
+            limits:
+              cpu: 800m
+              memory: 4Gi
+            requests:
+              cpu: 400m
+              memory: 2Gi
+      volumes:
+      - name: config
+        configMap:
+          name: release-name-sonarqube-config
+          items:
+          - key: sonar.properties
+            path: sonar.properties
+      - name: secret
+        secret:
+          secretName: mySecretKey
+          items:
+          - key: sonar-secret.txt
+            path: sonar-secret.txt
+      - name: ca-certs
+        secret:
+          secretName: your-secret
+      - name: init-sysctl
+        configMap:
+          name: release-name-sonarqube-init-sysctl
+          items:
+            - key: init_sysctl.sh
+              path: init_sysctl.sh
+      - name: install-plugins
+        configMap:
+          name: release-name-sonarqube-install-plugins
+          items:
+            - key: install_plugins.sh
+              path: install_plugins.sh
+      - name: sonarqube
+        emptyDir:
+          {}
+      - name : tmp-dir
+        emptyDir:
+          {}
+      - name : concat-dir
+        emptyDir:
+          {}

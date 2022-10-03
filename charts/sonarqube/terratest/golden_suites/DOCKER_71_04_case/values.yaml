@@ -1,0 +1,4 @@
+sonarSecretKey: mySecretKey
+elasticsearch:
+  bootstrapChecks: false
+deploymentType: "Deployment"

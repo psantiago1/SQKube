@@ -1,0 +1,13 @@
+---
+# This template explain the issue from community https://community.sonarsource.com/t/sonarsecretkey-with-sonar-chart/64152
+# as having only sonarSecretKey does not generate the sonar.properties data in this configmap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-sonarqube-config
+  labels:
+    app: sonarqube
+    chart: sonarqube-5.4.0
+    release: release-name
+    heritage: Helm
+data:

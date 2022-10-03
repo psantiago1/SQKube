@@ -1,0 +1,3 @@
+sonarProperties:
+  toto: tutu
+deploymentType: "Deployment"

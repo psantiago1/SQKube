@@ -1,0 +1,15 @@
+---
+# here we see the issue on the templating
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-sonarqube-config
+  labels:
+    app: sonarqube
+    chart: sonarqube-5.4.0
+    release: release-name
+    heritage: Helm
+data:
+  sonar.properties: sonar.secretKeyPath=/opt/sonarqube/secret/sonar-secret.txt
+  sonar.properties:
+    sonar.es.bootstrap.checks.disable=true

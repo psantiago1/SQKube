@@ -1,0 +1,3 @@
+sonarSecretKey: mySecretKey
+elasticsearch:
+  bootstrapChecks: false

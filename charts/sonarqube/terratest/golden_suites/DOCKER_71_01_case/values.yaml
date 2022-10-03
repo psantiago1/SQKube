@@ -1,0 +1,6 @@
+sonarProperties:
+  toto: tutu
+sonarSecretKey: mySecretKey
+elasticsearch:
+  bootstrapChecks: false
+deploymentType: "Deployment"
