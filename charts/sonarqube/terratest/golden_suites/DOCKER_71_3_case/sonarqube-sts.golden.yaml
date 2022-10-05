@@ -1,14 +1,12 @@
 ---
 # Source: sonarqube/templates/sonarqube-sts.yaml
-# This template explain the issue from community https://community.sonarsource.com/t/sonarsecretkey-with-sonar-chart/64152
-# release-name-sonarqube-config is not even defined in the volumes nor mounted.
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: release-name-sonarqube
   labels:
     app: sonarqube
-    chart: sonarqube-5.4.0
+    chart: sonarqube-5.4.1
     release: release-name
     heritage: Helm
     app.kubernetes.io/name: sonarqube-release-name-sonarqube
@@ -30,13 +28,13 @@ spec:
         app: sonarqube
         release: release-name
       annotations:
-        checksum/init-sysctl: 38b6a73f08534d3d7547e2570446912ba63b6986c7b78f3f22b1abf03250349b
-        checksum/init-fs: 7d85a44bbd9d4adfc13754f94b3f76c44e28bff29b1387051be9e4b96f443e73
-        checksum/plugins: 8aba274cd251da37fc15b4213c1b287fd4be7fda18eae143549f9402d499f2a2
-        checksum/config: 66a9a2c793f94ee8b8f3f8ba3bb594456b459e2d8980a6b1fec9dd0dc3d784f3
-        checksum/secret: b00e392756c5926cd4e24e523ec16080e9f4e9bd0d993c4e71300910802d750b
-        checksum/prometheus-config: 5689ddd4649d796e93f8fbc8bfa917794f29eea88d0f71680b4773294cc04019
-        checksum/prometheus-ce-config: 690d8f62e0428a9cb3fc9cd7d3fb0f4008e2bb331752db1062adfcb44db6330f
+        checksum/init-sysctl: 356f33e4e9c98bff726920aed095e9e869662f3b2d8b2f26a91e72a4f035d8f5
+        checksum/init-fs: 06ea2d8af0a8f780baa0dd20cfb1b06bb9ddea3300c221e4f3d1e1a82a510e27
+        checksum/plugins: ea58264fbf33c4fea016841cc0a01cdd877bf8a7484cf83788cf397002ff1966
+        checksum/config: 87cc3250cf1fa6a57cfdbf720520df32af203d68c64725190ac9273d560f10b0
+        checksum/secret: 027b7c178b693f21a98cdcb53071cca8abbfda1c77d8829deb08cf2f9ca92fd3
+        checksum/prometheus-config: a5957907e2a798bfe1a890edc47cb802051b2b84a1b2f26f3487fbd1b3a18e96
+        checksum/prometheus-ce-config: fb248d884d15eb32cef7dc612f2f072fc9419824c2fce1db72f9056f2ba90252
     spec:
       securityContext:
         fsGroup: 1000
@@ -60,6 +58,31 @@ spec:
           volumeMounts:
             - name: init-sysctl
               mountPath: /tmp/scripts/
+        - name: concat-properties
+          image: busybox:1.32
+          imagePullPolicy: IfNotPresent
+          command: 
+          - sh
+          - -c
+          - |
+            #!/bin/sh
+            if [ -f /tmp/props/sonar.properties ]; then
+              cat /tmp/props/sonar.properties > /tmp/result/sonar.properties
+            fi
+            if [ -f /tmp/props/secret.properties ]; then
+              cat /tmp/props/secret.properties > /tmp/result/sonar.properties
+            fi
+            if [ -f /tmp/props/sonar.properties -a -f /tmp/props/secret.properties ]; then
+              awk 1 /tmp/props/sonar.properties /tmp/props/secret.properties > /tmp/result/sonar.properties
+            fi
+          volumeMounts:
+            - mountPath: /tmp/props/sonar.properties
+              name: config
+              subPath: sonar.properties
+            - mountPath: /tmp/result
+              name: concat-dir
+          resources:
+            {}
         - name: inject-prometheus-exporter
           image: curlimages/curl:7.76.1
           imagePullPolicy: IfNotPresent
@@ -160,6 +183,8 @@ spec:
           securityContext:
             runAsUser: 1000
           volumeMounts:
+            - mountPath: /opt/sonarqube/conf/
+              name: concat-dir
             - mountPath: /opt/sonarqube/secret/
               name: secret
             - mountPath: /opt/sonarqube/data
@@ -181,6 +206,12 @@ spec:
               name: prometheus-ce-config
       serviceAccountName: default
       volumes:
+      - name: config
+        configMap:
+          name: release-name-sonarqube-config
+          items:
+          - key: sonar.properties
+            path: sonar.properties
       - name: secret
         secret:
           secretName: mySecretKey
@@ -221,5 +252,8 @@ spec:
         emptyDir:
           {}
       - name : tmp-dir
+        emptyDir:
+          {}
+      - name : concat-dir
         emptyDir:
           {}

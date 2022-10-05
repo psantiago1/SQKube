@@ -10,6 +10,6 @@ metadata:
     release: release-name
     heritage: Helm
 data:
-  sonar.properties: sonar.secretKeyPath=/opt/sonarqube/secret/sonar-secret.txt
   sonar.properties:
     sonar.es.bootstrap.checks.disable=true
+    sonar.secretKeyPath=/opt/sonarqube/secret/sonar-secret.txt

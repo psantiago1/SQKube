@@ -15,5 +15,3 @@ RUN curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | tee /usr/share/
     helm repo add bitnami https://charts.bitnami.com/bitnami &&\
     helm repo add bitnami-pre2022 https://raw.githubusercontent.com/bitnami/charts/pre-2022/bitnami &&\
     helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-
-

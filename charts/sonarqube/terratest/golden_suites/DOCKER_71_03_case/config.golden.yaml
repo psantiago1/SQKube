@@ -11,3 +11,5 @@ metadata:
     release: release-name
     heritage: Helm
 data:
+  sonar.properties:
+    sonar.secretKeyPath=/opt/sonarqube/secret/sonar-secret.txt

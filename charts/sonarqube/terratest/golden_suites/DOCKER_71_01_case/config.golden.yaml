@@ -15,4 +15,4 @@ data:
     toto=tutu
   
     sonar.es.bootstrap.checks.disable=true
-      sonar.secretKeyPath=/opt/sonarqube/secret/sonar-secret.txt
+    sonar.secretKeyPath=/opt/sonarqube/secret/sonar-secret.txt
