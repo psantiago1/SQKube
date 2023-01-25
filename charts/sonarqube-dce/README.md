@@ -4,7 +4,7 @@ Code better in up to 27 languages. Improve Code Quality and Code Security throug
 
 ## Introduction
 
-This chart bootstraps a SonarQube DCE Cluster with a PostgreSQL database.
+This chart bootstraps a SonarQube DCE Cluster with a PostgreSQL database. A helm chart containing the SonarQube-DCE LTS version can be installed following the steps outlined [here](#installing-the-lts-chart).
 
 Please note that this chart does NOT support SonarQube Community, Developer, and Enterprise Editions.
 
@@ -39,11 +39,9 @@ The default login is admin/admin.
 
 ## Installing the LTS chart
 
-The LTS chart is being distributed as the 7.x.x of this chart.
+The LTS chart is being distributed as the `7.x.x` version of this chart and it is compatible with the current SonarQube-DCE LTS (`9.9.x`).
 
-In order to use it, please use the version constraint ```~7``` which is equivalent to ```>=7.0.0 && <= 8.0.0```
-
-that version parameter **should** be used in every helm related command including ```install``` ```upgrade``` ```template``` ```diff``` ( might not be an exhaustiv list )
+In order to use it, please set the version constraint `~7`, which is equivalent to `>=7.0.0 && <= 8.0.0`. That version parameter **must** be used in every helm related command including `install`, `upgrade`, `template`, and `diff` (don't treat this as an exhaustive list).
 
 ## How to use it
 

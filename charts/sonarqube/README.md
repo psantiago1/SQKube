@@ -4,9 +4,9 @@ Code better in up to 27 languages. Improve Code Quality and Code Security throug
 
 ## Introduction
 
-This chart bootstraps an instance of the latest SonarQube version with a PostgreSQL database. A helm chart is also available for the [LTS version](../sonarqube-lts).
+This chart bootstraps an instance of the latest SonarQube version with a PostgreSQL database. A helm chart containing the SonarQube LTS version can be installed following the steps outlined [here](#installing-the-lts-chart).
 
-Please note that this chart only supports SonarQube Community, Developer, and Enterprise Editions.
+Please note that this chart only supports SonarQube Community, Developer, and Enterprise editions.
 
 ## Compatibility
 
@@ -31,11 +31,11 @@ The default login is admin/admin.
 
 ## Installing the LTS chart
 
-The LTS chart is being distributed as the 8.x.x of this chart.
+The LTS chart is being distributed as the `8.x.x` version of this chart and it is compatible with the current SonarQube LTS (`9.9.x`).
 
-In order to use it, please use the version constraint ```~8``` which is equivalent to ```>=8.0.0 && <= 9.0.0```
+In order to use it, please set the version constraint `~8`, which is equivalent to `>=8.0.0 && <= 9.0.0`. That version parameter **must** be used in every helm related command including `install`, `upgrade`, `template`, and `diff` (don't treat this as an exhaustive list).
 
-that version parameter **should** be used in every helm related command including ```install``` ```upgrade``` ```template``` ```diff``` ( might not be an exhaustiv list )
+If you intend to upgrade from the [old and unmaintained LTS chart](https://artifacthub.io/packages/helm/sonarqube/sonarqube-lts) to the newest, please follow the steps [in this section](#upgrade-from-sonarqube-lts-to-this-chart).
 
 ## How to use it
 
@@ -63,25 +63,19 @@ $ helm delete kindly-newt
 
 ### Upgrade from sonarqube-lts to this chart
 
-Please carefully read the [Upgrade doc above](./README#upgrade) and **backup** your db instance before atempting the migration.
+To install SonarQube 9.9 LTS, use this [sonarqube](https://artifacthub.io/packages/helm/sonarqube/sonarqube) Helm chart. The [sonarqube-lts](https://artifacthub.io/packages/helm/sonarqube/sonarqube-lts) Helm chart is no longer maintained and can not be used to install the new LTS.
 
-As Sonarqube only requires the database instance as persistence data, the general upgrade process will be to uninstall your instance, before installing the new lts.
+For SonarQube 9.9 LTS, the Helm chart version to use is `8.x.x`. 
 
-First verify your value file and if the parameters are still compatible with the targeted chart, adjusting if necessary.
+Before attempting any upgrade, please carefully read the general [upgrade documentation above](#upgrade), the [install-lts guide](#installing-the-lts-chart) and **backup** your db instance. Please also verify that your `values.yaml` file contains only parameters that are still compatible with the targeted chart, adjusting them if needed.
 
-#### Upgrade with an external database
+As SonarQube only requires to persist the database, the general upgrade process will consist of uninstalling your instance, before installing the new LTS.
 
-If you are using an external database, that scenario is the simpler as you dont have any persistent data inside kubernetes
+If you are using an external database, you don't have any persistent data inside kubernetes. Therefore, there is no action required. 
 
-#### Upgrade when using the embedeed postgresql chart ( not recommended )
-
-**Disclaimer** : The embedeed postgresql chart should only be used for testing and not for production usage.
-
-If one want to upgrade in that case, uninstalling the chart will keep the PVC alive. which can then be reused.
-
-Either by specifying ```postgresql.existingClaim``` in the values ( recommended )
-
-Or by not doing anything. If you have the exact same values, the name of the PVC will be generated the same and reused as is.
+Instead, if you rely on the embedded postgres chart (**not recommended**), uninstalling the chart will keep the PVC alive. This can then be reused either:
+- by specifying `postgresql.existingClaim` in the `values.yaml` file
+- by not changing parameter values, but making sure you install the new chart in the same namespace (auto-generated name will be the same).
 
 ## Ingress
 

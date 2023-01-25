@@ -3,7 +3,8 @@ All changes to this chart will be documented in this file.
 
 ## [8.0.0]
 * Update Sonarqube to 9.9.0
-* Mark 8.x.x chart as LTS
+* Mark 8.x.x chart as the LTS (SonarQube 9.9.x) chart
+
 ## [7.0.2]
 * Update the list of supported kubernetes versions
 
